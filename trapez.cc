@@ -7,6 +7,10 @@ class Pol1 {
 public:
   double operator()(double x) { return 3 * x + 2; }
 };
+class Pol2 {
+public:
+  double operator()(double x) { return -2 * x*x +3*x+1; }
+};
 
 class Gauss {
 public:
@@ -14,21 +18,28 @@ public:
 };
 
 // berechnet Werte nach Trapezformel von I_0 bis I_N
-std::vector<double> trapez(double a, double b, int N) {
-  Pol1 f;
+template<class Functor >std::vector<double> trapez(Functor f,double a, double b, int N) {
   std::vector<double> I(N + 1); // Feld mit N+1 Eintraegen
-  const double h = b - a;
+  const double h = (b - a);
+  
   I[0] = h / 2 * (f(a) + f(b));
   for (int k = 1; k <= N; ++k) {
+    double y = 0;
     int n = pow(2, k);
+    double h_k = h/n;
+    for(int i = 1; i <= n-1;i++){
+      y += f(a+i*h_k);
+    }
     //...
-    I[k] = 0; // setze k-ten Wert im Feld
+    I[k] = h_k/2*(f(a)+f(b)+2*y); // setze k-ten Wert im Feld
   }
   return I;
 }
 
 // berechnet die Richardsonextrapolation aus I(k-1)  und I(k)
-double richardson(double Iprev, double I) { return 0; }
+double richardson(double Iprev, double I) { 
+  return 4.0/3*I - 1.0/3*Iprev; 
+}
 
 // berechet Naeherungen ueber das Romberg-Verfahren
 // I: Ergebnis von trapez()
@@ -41,7 +52,7 @@ std::vector<std::vector<double>> romberg(std::vector<double> I) {
   return R;
 }
 
-/*
+
 void testeAufgabe1() {
   Pol1 f;
   std::vector<double> I_f = trapez(f, 0, 3, 3);
@@ -75,14 +86,14 @@ void testeAufgabe2() {
   std::vector<std::vector<double>> Rg = romberg(trapez(g, 0, 3, 3));
   std::cout << "A2: R[1][1] und R[2][1] für g gleich -1.5: " << ((Rg[1][1] == -1.5) && (Rg[2][1] == -1.5) ? " ja " : " nein") << std::endl;
 }
-*/
+
 
 int main() {
   // Testfunktion:
   Pol1 f;
   std::cout << "f(0) = " << f(0) << '\n';
   // berechne Trapezformel fuer f
-  std::vector<double> tf = trapez(0., 3., 3);
+  std::vector<double> tf = trapez(f,0., 3., 3);
   std::cout
       << "#############################################################\n";
   // Ausgabe:
@@ -98,8 +109,8 @@ int main() {
     }
     std::cout << std::endl;
   }
-  /*
+  
   testeAufgabe1();
   testeAufgabe2();
-  */
+  
 }
